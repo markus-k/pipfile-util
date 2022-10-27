@@ -64,6 +64,16 @@ Deleted:
   toml: 0.10.2
 ```
 
+The output from `pipfile-diff` can also be easily used to create commit messages:
+
+```
+# lock your Pipfile to install updates
+pipenv lock
+git add Pipfile.lock
+# create a commit, with the output from pipfile-diff as a template
+git commit -t <(pipfile-diff)
+```
+
 ## Installation
 
 ### From source
