@@ -140,7 +140,8 @@ struct Args {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let pipfile_path = args.pipfile.unwrap_or_else(|| "Pipfile.lock".into());
+    let pipfile_path =
+        std::fs::canonicalize(args.pipfile.unwrap_or_else(|| "Pipfile.lock".into()))?;
 
     let file = std::fs::File::open(&pipfile_path)?;
 
