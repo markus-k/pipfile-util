@@ -1,9 +1,9 @@
 # `pipfile-diff`
-A simple tool to compare changes in `Pipfile.lock`-files.
+A simple tool to compare changes in `Pipfile.lock`-files. By default, it compares your `Pipfile.lock` to the latest version committed to git.
 
 ## Usage
 
-To compare a freshly locked `Pipfile.lock`, run
+To compare a freshly locked `Pipfile.lock` to the latest commited one, run
 
 ```
 $ pipfile-diff path/to/Pipfile.lock 
