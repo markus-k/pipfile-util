@@ -132,33 +132,40 @@ fn print_diff(diff: &Diff) {
 }
 
 #[derive(Debug, Parser)]
-#[command(author, version)]
+#[command(author, version, about)]
 struct Args {
-    pipfile: Option<PathBuf>,
+    #[arg(
+        help = "Path to Pipfile.lock. If omitted, assumes Pipfile.lock in the current directory"
+    )]
+    pipfile_lock: Option<PathBuf>,
+
+    #[arg(
+        short = 'r',
+        long,
+        help = "Git reference to compare to. Defaults to HEAD"
+    )]
+    git_ref: Option<String>,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     let pipfile_path =
-        std::fs::canonicalize(args.pipfile.unwrap_or_else(|| "Pipfile.lock".into()))?;
+        std::fs::canonicalize(args.pipfile_lock.unwrap_or_else(|| "Pipfile.lock".into()))?;
 
     let file = std::fs::File::open(&pipfile_path)?;
 
     let lockfile = pipfile_lock::PipfileLock::from_reader(file)?;
 
-    let repo = git2::Repository::discover(&pipfile_path.parent().unwrap())?;
-    println!("Repo path: {:?}", repo.path());
-    println!("Pipfile path: {:?}", pipfile_path);
+    let git_ref = args.git_ref.unwrap_or_else(|| "HEAD".to_owned());
 
+    let repo = git2::Repository::discover(&pipfile_path.parent().unwrap())?;
     let path_in_repo: PathBuf = pipfile_path
         .strip_prefix(&repo.path().parent().unwrap())?
         .into();
 
-    println!("Pipfile path in repo: {:?}", path_in_repo);
-
     let obj = repo
-        .find_reference("HEAD")?
+        .resolve_reference_from_short_name(&git_ref)?
         .peel_to_tree()?
         .get_path(&path_in_repo)?
         .to_object(&repo)?;
