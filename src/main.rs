@@ -168,8 +168,14 @@ fn main() -> anyhow::Result<()> {
     let old_lockfile = pipfile_lock::PipfileLock::from_slice(blob.content())?;
 
     let diff = compare_dependencies(&lockfile.default, &old_lockfile.default);
+    let diff_develop = compare_dependencies(&lockfile.develop, &old_lockfile.develop);
 
+    println!("Default:");
     print_diff(&diff);
+
+    println!();
+    println!("Development:");
+    print_diff(&diff_develop);
 
     Ok(())
 }
