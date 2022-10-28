@@ -1,4 +1,4 @@
-# `pipfile-diff`
+# `pipfile-util`
 A simple tool to compare changes in `Pipfile.lock`-files. By default, it compares your `Pipfile.lock` to the latest version committed to git.
 
 ## Usage
@@ -6,7 +6,7 @@ A simple tool to compare changes in `Pipfile.lock`-files. By default, it compare
 To compare a freshly locked `Pipfile.lock` to the latest commited one, run
 
 ```
-$ pipfile-diff path/to/Pipfile.lock 
+$ pipfile-util diff path/to/Pipfile.lock 
 
 Default:
 Changed:
@@ -64,21 +64,21 @@ Deleted:
   toml: 0.10.2
 ```
 
-The output from `pipfile-diff` can also be easily used to create commit messages:
+The output from `pipfile-util diff` can also be easily used to create commit messages:
 
 ```
 # lock your Pipfile to install updates
 pipenv lock
 git add Pipfile.lock
-# create a commit, with the output from pipfile-diff as a template
-git commit -t <(pipfile-diff)
+# create a commit, with the output from pipfile-util as a template
+git commit -t <(pipfile-util diff)
 ```
 
 ## Installation
 
 ### From source
 
-To install `pipfile-diff` from source, clone the repository and run
+To install `pipfile-util` from source, clone the repository and run
 
 ```
 cargo install --path .
@@ -86,4 +86,4 @@ cargo install --path .
 
 ## License
 
-`pipfile-diff` is licensed under the Apache-2.0 license.
+`pipfile-util` is licensed under the Apache-2.0 license.
