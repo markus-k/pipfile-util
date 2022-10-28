@@ -9,6 +9,7 @@ use crate::pipfile_lock::PipfileLock;
 
 #[derive(Debug, Subcommand)]
 enum SubCommand {
+    #[command(about = "Compare version changes from a Pipfile.lock")]
     Diff {
         #[arg(
             help = "Path to Pipfile.lock. If omitted, assumes Pipfile.lock in the current directory"
