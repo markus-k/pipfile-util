@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand, ValueHint};
 use std::path::PathBuf;
 
 mod diff;
@@ -9,10 +9,19 @@ use crate::pipfile_lock::PipfileLock;
 
 #[derive(Debug, Subcommand)]
 enum SubCommand {
+    #[command(about = "Generates an autocomplete script")]
+    Completion {
+        #[arg(
+            default_value_t = clap_complete::Shell::Bash,
+            help = "Shell to generate autocomplete script for"
+        )]
+        shell: clap_complete::Shell,
+    },
     #[command(about = "Compare version changes from a Pipfile.lock")]
     Diff {
         #[arg(
-            help = "Path to Pipfile.lock. If omitted, assumes Pipfile.lock in the current directory"
+            value_hint = ValueHint::FilePath,
+            help = "Path to Pipfile.lock. If omitted, assumes Pipfile.lock in the current directory",
         )]
         pipfile_lock: Option<PathBuf>,
 
@@ -74,6 +83,12 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.subcommand {
+        SubCommand::Completion { shell } => clap_complete::generate(
+            shell,
+            &mut Args::command(),
+            std::env::args().next().unwrap(),
+            &mut std::io::stdout(),
+        ),
         SubCommand::Diff {
             pipfile_lock,
             git_ref,
