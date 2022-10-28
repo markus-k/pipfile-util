@@ -1,135 +1,11 @@
 use clap::Parser;
-use std::collections::HashMap;
 use std::path::PathBuf;
 
-mod pipfile_lock {
-    use std::{collections::HashMap, fmt::Display, io::Read};
+mod diff;
+mod pipfile_lock;
 
-    use serde::Deserialize;
-
-    #[derive(Debug, Deserialize)]
-    pub struct Meta {
-        #[serde(rename = "pipfile-spec")]
-        pub pipfile_spec: i32,
-    }
-
-    #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
-    #[serde(untagged)]
-    pub enum Dependency {
-        Git {
-            #[serde(rename = "ref")]
-            git_ref: String,
-        },
-        Pip {
-            version: String,
-        },
-    }
-
-    impl Display for Dependency {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            match self {
-                Self::Git { git_ref } => write!(f, "{git_ref}"),
-                Self::Pip { version } => write!(f, "{}", version.trim_start_matches("==")),
-            }
-        }
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub struct PipfileLock {
-        #[serde(rename = "_meta")]
-        pub meta: Meta,
-        pub default: HashMap<String, Dependency>,
-        pub develop: HashMap<String, Dependency>,
-    }
-
-    #[derive(Debug, thiserror::Error)]
-    pub enum Error {
-        #[error("Incompatble Pipfile.lock spec: {0}")]
-        IncompatiblePipfileLockSpec(i32),
-        #[error("Deserialize error: {0}")]
-        Deserialize(#[from] serde_json::Error),
-    }
-
-    impl PipfileLock {
-        fn validate(self) -> Result<Self, Error> {
-            if self.meta.pipfile_spec != 6 {
-                return Err(Error::IncompatiblePipfileLockSpec(self.meta.pipfile_spec));
-            }
-
-            Ok(self)
-        }
-
-        pub fn from_reader<R: Read>(reader: R) -> Result<Self, Error> {
-            let pipfile: PipfileLock = serde_json::from_reader(reader)?;
-
-            pipfile.validate()
-        }
-
-        pub fn from_slice(slice: &[u8]) -> Result<Self, Error> {
-            let pipfile: PipfileLock = serde_json::from_slice(slice)?;
-
-            pipfile.validate()
-        }
-    }
-}
-
-use pipfile_lock::Dependency;
-
-#[derive(Debug, Default)]
-pub struct Diff {
-    pub changed: HashMap<String, (Dependency, Dependency)>,
-    pub new: HashMap<String, Dependency>,
-    pub deleted: HashMap<String, Dependency>,
-}
-
-pub fn compare_dependencies(
-    new: &HashMap<String, Dependency>,
-    old: &HashMap<String, Dependency>,
-) -> Diff {
-    let mut diff = Diff::default();
-
-    for (dep_name, new_dep) in new.iter() {
-        if let Some(old_dep) = old.get(dep_name) {
-            if new_dep != old_dep {
-                diff.changed
-                    .insert(dep_name.clone(), (new_dep.clone(), old_dep.clone()));
-            }
-        } else {
-            diff.new.insert(dep_name.clone(), new_dep.clone());
-        }
-    }
-
-    for (dep_name, old_dep) in old.iter() {
-        if new.get(dep_name).is_none() {
-            diff.deleted.insert(dep_name.clone(), old_dep.clone());
-        }
-    }
-
-    diff
-}
-
-fn print_diff(diff: &Diff) {
-    if !diff.changed.is_empty() {
-        println!("Changed:");
-        for (dep_name, (new, old)) in diff.changed.iter() {
-            println!("  {dep_name}: {} => {}", old, new);
-        }
-    }
-
-    if !diff.new.is_empty() {
-        println!("New:");
-        for (dep_name, new) in diff.new.iter() {
-            println!("  {dep_name}: {}", new);
-        }
-    }
-
-    if !diff.deleted.is_empty() {
-        println!("Deleted:");
-        for (dep_name, deleted) in diff.deleted.iter() {
-            println!("  {dep_name}: {}", deleted);
-        }
-    }
-}
+use crate::diff::{print_diff, Diff};
+use crate::pipfile_lock::PipfileLock;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -155,7 +31,7 @@ fn main() -> anyhow::Result<()> {
 
     let file = std::fs::File::open(&pipfile_path)?;
 
-    let lockfile = pipfile_lock::PipfileLock::from_reader(file)?;
+    let lockfile = PipfileLock::from_reader(file)?;
 
     let git_ref = args.git_ref.unwrap_or_else(|| "HEAD".to_owned());
 
@@ -174,8 +50,8 @@ fn main() -> anyhow::Result<()> {
 
     let old_lockfile = pipfile_lock::PipfileLock::from_slice(blob.content())?;
 
-    let diff = compare_dependencies(&lockfile.default, &old_lockfile.default);
-    let diff_develop = compare_dependencies(&lockfile.develop, &old_lockfile.develop);
+    let diff = Diff::compare_dependencies(&lockfile.default, &old_lockfile.default);
+    let diff_develop = Diff::compare_dependencies(&lockfile.develop, &old_lockfile.develop);
 
     println!("Default:");
     print_diff(&diff);
