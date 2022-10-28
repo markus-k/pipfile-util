@@ -90,7 +90,7 @@ mod tests {
             (
                 "lib1".to_owned(),
                 Dependency::Pip {
-                    version: "3.2.0".to_owned(),
+                    version: "3.2.1".to_owned(),
                 },
             ),
             (
@@ -107,6 +107,41 @@ mod tests {
             ),
         ]);
 
-        let diff = compare_dependencies(&new, &old);
+        let diff = Diff::compare_dependencies(&new, &old);
+
+        assert_eq!(
+            diff.changed,
+            HashMap::from([(
+                "lib1".to_owned(),
+                (
+                    Dependency::Pip {
+                        version: "3.2.0".to_owned(),
+                    },
+                    Dependency::Pip {
+                        version: "3.2.1".to_owned(),
+                    },
+                )
+            )])
+        );
+
+        assert_eq!(
+            diff.new,
+            HashMap::from([(
+                "lib3".to_owned(),
+                Dependency::Pip {
+                    version: "1.2".to_owned(),
+                },
+            )])
+        );
+
+        assert_eq!(
+            diff.deleted,
+            HashMap::from([(
+                "lib4".to_owned(),
+                Dependency::Pip {
+                    version: "0.1".to_owned(),
+                },
+            )])
+        );
     }
 }
