@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 mod diff;
 mod pipfile_lock;
+mod semver;
 
 use crate::diff::{print_diff, Diff};
 use crate::pipfile_lock::PipfileLock;
