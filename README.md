@@ -1,6 +1,7 @@
 # `pipfile-util`
-[![Rust](https://github.com/markus-k/pipfile-util/actions/workflows/rust.yml/badge.svg)](https://github.com/markus-k/pipfile-util/actions/workflows/rust.yml)
+[![CI](https://github.com/markus-k/pipfile-util/actions/workflows/rust.yml/badge.svg)](https://github.com/markus-k/pipfile-util/actions/workflows/rust.yml)
 ![License](https://img.shields.io/github/license/markus-k/s3-proxy)
+[![Crates.io](https://img.shields.io/crates/v/pipfile-util)](https://crates.io/crates/pipfile-util)
 
 A command line utility for working with pipenv's Pipfile's.
 
