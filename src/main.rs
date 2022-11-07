@@ -2,6 +2,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueHint};
 use std::path::PathBuf;
 
 mod diff;
+mod pipfile;
 mod pipfile_lock;
 mod semver;
 
