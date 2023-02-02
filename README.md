@@ -42,6 +42,9 @@ pipenv lock
 git add Pipfile.lock
 # create a commit, with the output from pipfile-util as a template
 git commit -t <(pipfile-util diff)
+
+# or for fish-shell (and others not supporting <(..) syntax):
+git commit -t (pipfile-util diff | psub)
 ```
 
 For more information, run `pipfile-util --help`.
